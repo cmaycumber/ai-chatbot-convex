@@ -1,17 +1,18 @@
 'use client';
 
-import { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
+import type { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
 import cx from 'classnames';
 import { motion } from 'framer-motion';
-import React, {
+import type React from 'react';
+import {
   useRef,
   useEffect,
   useState,
-  useCallback,
-  Dispatch,
-  SetStateAction,
+  useCallback,type 
+  Dispatch,type 
+  SetStateAction,type 
   ChangeEvent,
-} from 'react';
+} from 'react'
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
@@ -142,7 +143,7 @@ export function MultimodalInput({
     formData.append('file', file);
 
     try {
-      const response = await fetch(`/api/files/upload`, {
+      const response = await fetch("/api/files/upload", {
         method: 'POST',
         body: formData,
       });
@@ -156,10 +157,9 @@ export function MultimodalInput({
           name: pathname,
           contentType: contentType,
         };
-      } else {
+      }
         const { error } = await response.json();
         toast.error(error);
-      }
     } catch (error) {
       toast.error('Failed to upload file, please try again!');
     }
@@ -192,11 +192,11 @@ export function MultimodalInput({
   );
 
   return (
-    <div className="relative w-full flex flex-col gap-4">
+    <div className="relative flex w-full flex-col gap-4">
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="grid sm:grid-cols-2 gap-2 w-full">
+          <div className="grid w-full gap-2 sm:grid-cols-2">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -216,7 +216,7 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
+                  className="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"
                 >
                   <span className="font-medium">{suggestedAction.title}</span>
                   <span className="text-muted-foreground">
@@ -230,7 +230,7 @@ export function MultimodalInput({
 
       <input
         type="file"
-        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+        className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
         ref={fileInputRef}
         multiple
         onChange={handleFileChange}
@@ -238,7 +238,7 @@ export function MultimodalInput({
       />
 
       {(attachments.length > 0 || uploadQueue.length > 0) && (
-        <div className="flex flex-row gap-2 overflow-x-scroll items-end">
+        <div className="flex flex-row items-end gap-2 overflow-x-scroll">
           {attachments.map((attachment) => (
             <PreviewAttachment key={attachment.url} attachment={attachment} />
           ))}
@@ -263,7 +263,7 @@ export function MultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted',
+          "max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-xl bg-muted text-base",
           className
         )}
         rows={3}
@@ -283,7 +283,7 @@ export function MultimodalInput({
 
       {isLoading ? (
         <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
+          className="absolute right-2 bottom-2 m-0.5 h-fit rounded-full border p-1.5 dark:border-zinc-600"
           onClick={(event) => {
             event.preventDefault();
             stop();
@@ -294,7 +294,7 @@ export function MultimodalInput({
         </Button>
       ) : (
         <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
+          className="absolute right-2 bottom-2 m-0.5 h-fit rounded-full border p-1.5 dark:border-zinc-600"
           onClick={(event) => {
             event.preventDefault();
             submitForm();
@@ -306,7 +306,7 @@ export function MultimodalInput({
       )}
 
       <Button
-        className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 dark:border-zinc-700"
+        className="absolute right-11 bottom-2 m-0.5 h-fit rounded-full p-1.5 dark:border-zinc-700"
         onClick={(event) => {
           event.preventDefault();
           fileInputRef.current?.click();

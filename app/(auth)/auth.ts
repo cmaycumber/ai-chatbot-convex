@@ -1,54 +1,25 @@
-import { compare } from 'bcrypt-ts';
-import NextAuth, { User, Session } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 
-import { api } from '@/convex/_generated/api';
-import { convex } from '@/lib/convex';
+// TODO: Figure out how to properly implement auth w/ the API's
+export const auth = async () => {
+  return null as any;
 
-import { authConfig } from './auth.config';
+  //   const token = convexAuthNextjsToken();
 
-interface ExtendedSession extends Session {
-  user: User;
-}
+  //   if (!token) {
+  //     return null;
+  //   }
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
-  ...authConfig,
-  providers: [
-    Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
-        let users = await convex.query(api.queries.getUser, { email });
-        if (users.length === 0) return null;
-        let passwordsMatch = await compare(password, users[0].password!);
-        if (passwordsMatch) return users[0] as any;
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
+  // //   const user = await fetchQuery(
+  // //     api.queries.getUserByToken,
+  // //     { id: token },
+  // //     { token }
+  // //   );
 
-      return token;
-    },
-    async session({
-      session,
-      token,
-    }: {
-      session: ExtendedSession;
-      token: any;
-    }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-      }
-
-      return session;
-    },
-  },
-});
+  //   return {
+  //     token,
+  //     user,
+  //   };
+};

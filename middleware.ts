@@ -1,9 +1,9 @@
-import NextAuth from "next-auth";
+import { convexAuthNextjsMiddleware } from "@convex-dev/auth/nextjs/server";
 
-import { authConfig } from "@/app/(auth)/auth.config";
-
-export default NextAuth(authConfig).auth;
+export default convexAuthNextjsMiddleware();
 
 export const config = {
-  matcher: ["/", "/:id", "/api/:path*", "/login", "/register"],
+	// The following matcher runs middleware on all routes
+	// except static assets.
+	matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };

@@ -1,10 +1,10 @@
-import { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
+import type { Attachment, ChatRequestOptions, CreateMessage, Message } from 'ai';
 import cx from 'classnames';
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Dispatch,
-  SetStateAction,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useEffect,
   useState,
@@ -17,7 +17,7 @@ import {
   useWindowSize,
 } from 'usehooks-ts';
 
-import { Document, Suggestion, Vote } from '@/db/schema';
+import type { Document, Suggestion, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
 import { DiffView } from './diffview';
@@ -168,9 +168,8 @@ export function Block({
             };
 
             return [...currentDocuments, newDocument];
-          } else {
-            return currentDocuments;
           }
+            return currentDocuments;
         },
         { revalidate: false }
       );
@@ -247,14 +246,14 @@ export function Block({
 
   return (
     <motion.div
-      className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-muted"
+      className="fixed top-0 left-0 z-50 flex h-dvh w-dvw flex-row bg-muted"
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { delay: 0.4 } }}
     >
       {!isMobile && (
         <motion.div
-          className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
+          className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
           initial={{ opacity: 0, x: 10, scale: 1 }}
           animate={{
             opacity: 1,
@@ -277,7 +276,7 @@ export function Block({
           <AnimatePresence>
             {!isCurrentVersion && (
               <motion.div
-                className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
+                className="absolute top-0 left-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -285,10 +284,10 @@ export function Block({
             )}
           </AnimatePresence>
 
-          <div className="flex flex-col h-full justify-between items-center gap-4">
+          <div className="flex h-full flex-col items-center justify-between gap-4">
             <div
               ref={messagesContainerRef}
-              className="flex flex-col gap-4 h-full items-center overflow-y-scroll px-4 pt-20"
+              className="flex h-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
             >
               {messages.map((message, index) => (
                 <PreviewMessage
@@ -308,11 +307,11 @@ export function Block({
 
               <div
                 ref={messagesEndRef}
-                className="shrink-0 min-w-[24px] min-h-[24px]"
+                className="min-h-[24px] min-w-[24px] shrink-0"
               />
             </div>
 
-            <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+            <form className="relative flex w-full flex-row items-end gap-2 px-4 pb-4">
               <MultimodalInput
                 chatId={chatId}
                 input={input}
@@ -333,7 +332,7 @@ export function Block({
       )}
 
       <motion.div
-        className="fixed dark:bg-muted bg-background h-dvh flex flex-col shadow-xl overflow-y-scroll"
+        className="fixed flex h-dvh flex-col overflow-y-scroll bg-background shadow-xl dark:bg-muted"
         initial={
           isMobile
             ? {
@@ -395,8 +394,8 @@ export function Block({
           },
         }}
       >
-        <div className="p-2 flex flex-row justify-between items-start">
-          <div className="flex flex-row gap-4 items-start">
+        <div className="flex flex-row items-start justify-between p-2">
+          <div className="flex flex-row items-start gap-4">
             <Button
               variant="outline"
               className="h-fit p-2 dark:hover:bg-zinc-700"
@@ -416,11 +415,11 @@ export function Block({
               </div>
 
               {isContentDirty ? (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   Saving changes...
                 </div>
               ) : document ? (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   {`Updated ${formatDistance(
                     new Date(document.createdAt),
                     new Date(),
@@ -430,7 +429,7 @@ export function Block({
                   )}`}
                 </div>
               ) : (
-                <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
               )}
             </div>
           </div>
@@ -440,7 +439,7 @@ export function Block({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700"
+                  className="h-fit p-2 dark:hover:bg-zinc-700"
                   onClick={() => {
                     copyToClipboard(block.content);
                     toast.success('Copied to clipboard!');
@@ -456,7 +455,7 @@ export function Block({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+                  className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
                   onClick={() => {
                     handleVersionChange('prev');
                   }}
@@ -473,7 +472,7 @@ export function Block({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+                  className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
                   onClick={() => {
                     handleVersionChange('next');
                   }}
@@ -489,7 +488,7 @@ export function Block({
                 <Button
                   variant="outline"
                   className={cx(
-                    'p-2 h-fit !pointer-events-auto dark:hover:bg-zinc-700',
+                    "!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700",
                     {
                       'bg-muted': mode === 'diff',
                     }
@@ -509,8 +508,8 @@ export function Block({
           </div>
         </div>
 
-        <div className="prose dark:prose-invert dark:bg-muted bg-background h-full overflow-y-scroll px-4 py-8 md:p-20 !max-w-full pb-40 items-center">
-          <div className="flex flex-row max-w-[600px] mx-auto">
+        <div className="prose dark:prose-invert !max-w-full h-full items-center overflow-y-scroll bg-background px-4 py-8 pb-40 md:p-20 dark:bg-muted">
+          <div className="mx-auto flex max-w-[600px] flex-row">
             {isDocumentsFetching && !block.content ? (
               <DocumentSkeleton />
             ) : mode === 'edit' ? (
@@ -534,7 +533,7 @@ export function Block({
             )}
 
             {suggestions ? (
-              <div className="md:hidden h-dvh w-12 shrink-0" />
+              <div className="h-dvh w-12 shrink-0 md:hidden" />
             ) : null}
 
             <AnimatePresence>

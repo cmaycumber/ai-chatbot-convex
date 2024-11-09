@@ -1,25 +1,34 @@
-import { v } from 'convex/values';
-import { query, mutation } from './_generated/server';
+import { v } from "convex/values";
+import { query, mutation } from "./_generated/server";
 
 export const getUser = query({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
     return await ctx.db
-      .query('users')
-      .filter((q) => q.eq(q.field('email'), email))
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), email))
       .collect();
   },
 });
 
+export const getUserByToken = query({
+  args: { id: v.string() },
+  handler: async (ctx, { id }) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("_id"), id))
+      .first();
+  },
+});
+
+// Probably remove this...
 export const createUser = mutation({
   args: {
     email: v.string(),
-    password: v.string(),
   },
-  handler: async (ctx, { email, password }) => {
-    return await ctx.db.insert('users', {
+  handler: async (ctx, { email }) => {
+    return await ctx.db.insert("users", {
       email,
-      password,
     });
   },
 });
@@ -27,11 +36,11 @@ export const createUser = mutation({
 export const saveChat = mutation({
   args: {
     id: v.string(),
-    userId: v.id('users'),
+    userId: v.id("users"),
     title: v.string(),
   },
   handler: async (ctx, { id, userId, title }) => {
-    return await ctx.db.insert('chats', {
+    return await ctx.db.insert("chats", {
       createdAt: Date.now(),
       userId,
       title,
@@ -40,11 +49,11 @@ export const saveChat = mutation({
 });
 
 export const deleteChatById = mutation({
-  args: { id: v.id('chats') },
+  args: { id: v.id("chats") },
   handler: async (ctx, { id }) => {
     const votes = await ctx.db
-      .query('votes')
-      .filter((q) => q.eq(q.field('chatId'), id))
+      .query("votes")
+      .filter((q) => q.eq(q.field("chatId"), id))
       .collect();
 
     for (const vote of votes) {
@@ -52,8 +61,8 @@ export const deleteChatById = mutation({
     }
 
     const messages = await ctx.db
-      .query('messages')
-      .filter((q) => q.eq(q.field('chatId'), id))
+      .query("messages")
+      .filter((q) => q.eq(q.field("chatId"), id))
       .collect();
 
     for (const message of messages) {
@@ -65,18 +74,18 @@ export const deleteChatById = mutation({
 });
 
 export const getChatsByUserId = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { id }) => {
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
     return await ctx.db
-      .query('chats')
-      .filter((q) => q.eq(q.field('userId'), id))
-      .order('desc')
+      .query("chats")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .order("desc")
       .collect();
   },
 });
 
 export const getChatById = query({
-  args: { id: v.id('chats') },
+  args: { id: v.id("chats") },
   handler: async (ctx, { id }) => {
     return await ctx.db.get(id);
   },
@@ -86,7 +95,7 @@ export const saveMessages = mutation({
   args: {
     messages: v.array(
       v.object({
-        chatId: v.id('chats'),
+        chatId: v.id("chats"),
         role: v.string(),
         content: v.any(),
         createdAt: v.number(),
@@ -96,7 +105,7 @@ export const saveMessages = mutation({
   handler: async (ctx, { messages }) => {
     const ids = [];
     for (const message of messages) {
-      const id = await ctx.db.insert('messages', message);
+      const id = await ctx.db.insert("messages", message);
       ids.push(id);
     }
     return ids;
@@ -104,53 +113,52 @@ export const saveMessages = mutation({
 });
 
 export const getMessagesByChatId = query({
-  args: { id: v.id('chats') },
+  args: { id: v.id("chats") },
   handler: async (ctx, { id }) => {
     return await ctx.db
-      .query('messages')
-      .filter((q) => q.eq(q.field('chatId'), id))
-      .order('asc')
+      .query("messages")
+      .filter((q) => q.eq(q.field("chatId"), id))
+      .order("asc")
       .collect();
   },
 });
 
 export const voteMessage = mutation({
   args: {
-    chatId: v.id('chats'),
-    messageId: v.id('messages'),
-    type: v.union(v.literal('up'), v.literal('down')),
+    chatId: v.id("chats"),
+    messageId: v.id("messages"),
+    type: v.union(v.literal("up"), v.literal("down")),
   },
   handler: async (ctx, { chatId, messageId, type }) => {
     const existingVotes = await ctx.db
-      .query('votes')
+      .query("votes")
       .filter((q) =>
         q.and(
-          q.eq(q.field('chatId'), chatId),
-          q.eq(q.field('messageId'), messageId)
+          q.eq(q.field("chatId"), chatId),
+          q.eq(q.field("messageId"), messageId)
         )
       )
       .collect();
 
     if (existingVotes.length > 0) {
       return await ctx.db.patch(existingVotes[0]._id, {
-        isUpvoted: type === 'up',
-      });
-    } else {
-      return await ctx.db.insert('votes', {
-        chatId,
-        messageId,
-        isUpvoted: type === 'up',
+        isUpvoted: type === "up",
       });
     }
+    return await ctx.db.insert("votes", {
+      chatId,
+      messageId,
+      isUpvoted: type === "up",
+    });
   },
 });
 
 export const getVotesByChatId = query({
-  args: { id: v.id('chats') },
+  args: { id: v.id("chats") },
   handler: async (ctx, { id }) => {
     return await ctx.db
-      .query('votes')
-      .filter((q) => q.eq(q.field('chatId'), id))
+      .query("votes")
+      .filter((q) => q.eq(q.field("chatId"), id))
       .collect();
   },
 });
@@ -160,10 +168,10 @@ export const saveDocument = mutation({
     id: v.string(),
     title: v.string(),
     content: v.string(),
-    userId: v.id('users'),
+    userId: v.id("users"),
   },
   handler: async (ctx, { id, title, content, userId }) => {
-    return await ctx.db.insert('documents', {
+    return await ctx.db.insert("documents", {
       createdAt: Date.now(),
       title,
       content,
@@ -173,18 +181,18 @@ export const saveDocument = mutation({
 });
 
 export const getDocumentsById = query({
-  args: { id: v.id('documents') },
+  args: { id: v.id("documents") },
   handler: async (ctx, { id }) => {
     return await ctx.db
-      .query('documents')
-      .filter((q) => q.eq(q.field('_id'), id))
-      .order('asc')
+      .query("documents")
+      .filter((q) => q.eq(q.field("_id"), id))
+      .order("asc")
       .collect();
   },
 });
 
 export const getDocumentById = query({
-  args: { id: v.id('documents') },
+  args: { id: v.id("documents") },
   handler: async (ctx, { id }) => {
     return await ctx.db.get(id);
   },
@@ -192,16 +200,16 @@ export const getDocumentById = query({
 
 export const deleteDocumentsByIdAfterTimestamp = mutation({
   args: {
-    id: v.id('documents'),
+    id: v.id("documents"),
     timestamp: v.number(),
   },
   handler: async (ctx, { id, timestamp }) => {
     const suggestions = await ctx.db
-      .query('suggestions')
+      .query("suggestions")
       .filter((q) =>
         q.and(
-          q.eq(q.field('documentId'), id),
-          q.gt(q.field('documentCreatedAt'), timestamp)
+          q.eq(q.field("documentId"), id),
+          q.gt(q.field("documentCreatedAt"), timestamp)
         )
       )
       .collect();
@@ -211,9 +219,9 @@ export const deleteDocumentsByIdAfterTimestamp = mutation({
     }
 
     const documents = await ctx.db
-      .query('documents')
+      .query("documents")
       .filter((q) =>
-        q.and(q.eq(q.field('_id'), id), q.gt(q.field('createdAt'), timestamp))
+        q.and(q.eq(q.field("_id"), id), q.gt(q.field("createdAt"), timestamp))
       )
       .collect();
 
@@ -227,13 +235,13 @@ export const saveSuggestions = mutation({
   args: {
     suggestions: v.array(
       v.object({
-        documentId: v.id('documents'),
+        documentId: v.id("documents"),
         documentCreatedAt: v.number(),
         originalText: v.string(),
         suggestedText: v.string(),
         description: v.optional(v.string()),
         isResolved: v.boolean(),
-        userId: v.id('users'),
+        userId: v.id("users"),
         createdAt: v.number(),
       })
     ),
@@ -241,7 +249,7 @@ export const saveSuggestions = mutation({
   handler: async (ctx, { suggestions }) => {
     const ids = [];
     for (const suggestion of suggestions) {
-      const id = await ctx.db.insert('suggestions', suggestion);
+      const id = await ctx.db.insert("suggestions", suggestion);
       ids.push(id);
     }
     return ids;
@@ -249,11 +257,11 @@ export const saveSuggestions = mutation({
 });
 
 export const getSuggestionsByDocumentId = query({
-  args: { documentId: v.id('documents') },
+  args: { documentId: v.id("documents") },
   handler: async (ctx, { documentId }) => {
     return await ctx.db
-      .query('suggestions')
-      .filter((q) => q.eq(q.field('documentId'), documentId))
+      .query("suggestions")
+      .filter((q) => q.eq(q.field("documentId"), documentId))
       .collect();
   },
 });

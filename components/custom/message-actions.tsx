@@ -1,9 +1,9 @@
-import { Message } from 'ai';
+import type { Message } from 'ai';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { useCopyToClipboard } from 'usehooks-ts';
 
-import { Vote } from '@/db/schema';
+import type { Vote } from '@/db/schema';
 import { getMessageIdFromAnnotations } from '@/lib/utils';
 
 import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
@@ -40,7 +40,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="py-1 px-2 h-fit text-muted-foreground"
+              className="h-fit px-2 py-1 text-muted-foreground"
               variant="outline"
               onClick={async () => {
                 await copyToClipboard(message.content as string);
@@ -56,8 +56,8 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="py-1 px-2 h-fit text-muted-foreground !pointer-events-auto"
-              disabled={vote && vote.isUpvoted}
+              className="!pointer-events-auto h-fit px-2 py-1 text-muted-foreground"
+              disabled={vote?.isUpvoted}
               variant="outline"
               onClick={async () => {
                 const messageId = getMessageIdFromAnnotations(message);
@@ -110,7 +110,7 @@ export function MessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="py-1 px-2 h-fit text-muted-foreground !pointer-events-auto"
+              className="!pointer-events-auto h-fit px-2 py-1 text-muted-foreground"
               variant="outline"
               disabled={vote && !vote.isUpvoted}
               onClick={async () => {

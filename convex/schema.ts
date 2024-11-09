@@ -1,11 +1,9 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
-  users: defineTable({
-    email: v.string(),
-    password: v.optional(v.string()),
-  }),
+  ...authTables,
 
   chats: defineTable({
     createdAt: v.number(),
@@ -37,10 +35,10 @@ export default defineSchema({
     documentId: v.id("documents"),
     documentCreatedAt: v.number(),
     originalText: v.string(),
-    suggestedText: v.string(), 
+    suggestedText: v.string(),
     description: v.optional(v.string()),
     isResolved: v.boolean(),
     userId: v.id("users"),
     createdAt: v.number(),
-  }).index("by_document", ["documentId", "documentCreatedAt"])
+  }).index("by_document", ["documentId", "documentCreatedAt"]),
 });

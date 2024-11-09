@@ -1,44 +1,45 @@
 import {
   convertToCoreMessages,
-  Message,
+  type Message,
   StreamData,
   streamObject,
   streamText,
-} from 'ai';
-import { z } from 'zod';
+} from "ai";
+import { z } from "zod";
 
-import { customModel } from '@/ai';
-import { models } from '@/ai/models';
-import { blocksPrompt, regularPrompt, systemPrompt } from '@/ai/prompts';
-import { auth } from '@/app/(auth)/auth';
-import { api } from '@/convex/_generated/api';
-import { Doc } from '@/convex/_generated/dataModel';
-import { convex } from '@/lib/convex';
+import { customModel } from "@/ai";
+import { models } from "@/ai/models";
+import { blocksPrompt, regularPrompt, systemPrompt } from "@/ai/prompts";
+import { auth } from "@/app/(auth)/auth";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { convex } from "@/lib/convex";
 // import { Suggestion } from '@/db/schema';
 
 import {
   generateUUID,
   getMostRecentUserMessage,
   sanitizeResponseMessages,
-} from '@/lib/utils';
+} from "@/lib/utils";
 
-import { generateTitleFromUserMessage } from '../../actions';
+import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
 
 type AllowedTools =
-  | 'createDocument'
-  | 'updateDocument'
-  | 'requestSuggestions'
-  | 'getWeather';
+  | "createDocument"
+  | "updateDocument"
+  | "requestSuggestions"
+  | "getWeather";
 
 const blocksTools: AllowedTools[] = [
-  'createDocument',
-  'updateDocument',
-  'requestSuggestions',
+  "createDocument",
+  "updateDocument",
+  "requestSuggestions",
 ];
 
-const weatherTools: AllowedTools[] = ['getWeather'];
+const weatherTools: AllowedTools[] = ["getWeather"];
 
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
@@ -53,20 +54,20 @@ export async function POST(request: Request) {
   const session = await auth();
 
   if (!session || !session.user || !session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const model = models.find((model) => model.id === modelId);
 
   if (!model) {
-    return new Response('Model not found', { status: 404 });
+    return new Response("Model not found", { status: 404 });
   }
 
   const coreMessages = convertToCoreMessages(messages);
   const userMessage = getMostRecentUserMessage(coreMessages);
 
   if (!userMessage) {
-    return new Response('No user message found', { status: 400 });
+    return new Response("No user message found", { status: 400 });
   }
 
   const chat = await convex.query(api.queries.getChatById, { id });
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     experimental_activeTools: allTools,
     tools: {
       getWeather: {
-        description: 'Get the current weather at a location',
+        description: "Get the current weather at a location",
         parameters: z.object({
           latitude: z.number(),
           longitude: z.number(),
@@ -111,53 +112,53 @@ export async function POST(request: Request) {
         },
       },
       createDocument: {
-        description: 'Create a document for a writing activity',
+        description: "Create a document for a writing activity",
         parameters: z.object({
           title: z.string(),
         }),
         execute: async ({ title }) => {
           const id = generateUUID();
-          let draftText: string = '';
+          let draftText = "";
 
           streamingData.append({
-            type: 'id',
+            type: "id",
             content: id,
           });
 
           streamingData.append({
-            type: 'title',
+            type: "title",
             content: title,
           });
 
           streamingData.append({
-            type: 'clear',
-            content: '',
+            type: "clear",
+            content: "",
           });
 
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system:
-              'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+              "Write about the given topic. Markdown is supported. Use headings wherever appropriate.",
             prompt: title,
           });
 
           for await (const delta of fullStream) {
             const { type } = delta;
 
-            if (type === 'text-delta') {
+            if (type === "text-delta") {
               const { textDelta } = delta;
 
               draftText += textDelta;
               streamingData.append({
-                type: 'text-delta',
+                type: "text-delta",
                 content: textDelta,
               });
             }
           }
 
-          streamingData.append({ type: 'finish', content: '' });
+          streamingData.append({ type: "finish", content: "" });
 
-          if (session.user && session.user.id) {
+          if (session.user?.id) {
             await convex.mutation(api.queries.saveDocument, {
               id,
               title,
@@ -169,17 +170,17 @@ export async function POST(request: Request) {
           return {
             id,
             title,
-            content: `A document was created and is now visible to the user.`,
+            content: "A document was created and is now visible to the user.",
           };
         },
       },
       updateDocument: {
-        description: 'Update a document with the given description',
+        description: "Update a document with the given description",
         parameters: z.object({
-          id: z.string().describe('The ID of the document to update'),
+          id: z.string().describe("The ID of the document to update"),
           description: z
             .string()
-            .describe('The description of changes that need to be made'),
+            .describe("The description of changes that need to be made"),
         }),
         execute: async ({ id, description }) => {
           const document = await convex.query(api.queries.getDocumentById, {
@@ -188,56 +189,56 @@ export async function POST(request: Request) {
 
           if (!document) {
             return {
-              error: 'Document not found',
+              error: "Document not found",
             };
           }
 
           const { content: currentContent } = document;
-          let draftText: string = '';
+          let draftText = "";
 
           streamingData.append({
-            type: 'clear',
+            type: "clear",
             content: document.title,
           });
 
           const { fullStream } = await streamText({
             model: customModel(model.apiIdentifier),
             system:
-              'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
+              "You are a helpful writing assistant. Based on the description, please update the piece of writing.",
             experimental_providerMetadata: {
               openai: {
                 prediction: {
-                  type: 'content',
+                  type: "content",
                   content: currentContent,
                 },
               },
             },
             messages: [
               {
-                role: 'user',
+                role: "user",
                 content: description,
               },
-              { role: 'user', content: currentContent },
+              { role: "user", content: currentContent },
             ],
           });
 
           for await (const delta of fullStream) {
             const { type } = delta;
 
-            if (type === 'text-delta') {
+            if (type === "text-delta") {
               const { textDelta } = delta;
 
               draftText += textDelta;
               streamingData.append({
-                type: 'text-delta',
+                type: "text-delta",
                 content: textDelta,
               });
             }
           }
 
-          streamingData.append({ type: 'finish', content: '' });
+          streamingData.append({ type: "finish", content: "" });
 
-          if (session.user && session.user.id) {
+          if (session.user?.id) {
             await convex.mutation(api.queries.saveDocument, {
               id,
               title: document.title,
@@ -249,16 +250,16 @@ export async function POST(request: Request) {
           return {
             id,
             title: document.title,
-            content: 'The document has been updated successfully.',
+            content: "The document has been updated successfully.",
           };
         },
       },
       requestSuggestions: {
-        description: 'Request suggestions for a document',
+        description: "Request suggestions for a document",
         parameters: z.object({
           documentId: z
             .string()
-            .describe('The ID of the document to request edits'),
+            .describe("The ID of the document to request edits"),
         }),
         execute: async ({ documentId }) => {
           const document = await convex.query(api.queries.getDocumentById, {
@@ -267,29 +268,29 @@ export async function POST(request: Request) {
 
           if (!document || !document.content) {
             return {
-              error: 'Document not found',
+              error: "Document not found",
             };
           }
 
-          let suggestions: Array<
+          const suggestions: Array<
             Omit<
-              Doc<'suggestions'>,
-              'userId' | 'createdAt' | 'documentCreatedAt'
+              Doc<"suggestions">,
+              "userId" | "createdAt" | "documentCreatedAt"
             >
           > = [];
 
           const { elementStream } = await streamObject({
             model: customModel(model.apiIdentifier),
             system:
-              'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
+              "You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.",
             prompt: document.content,
-            output: 'array',
+            output: "array",
             schema: z.object({
-              originalSentence: z.string().describe('The original sentence'),
-              suggestedSentence: z.string().describe('The suggested sentence'),
+              originalSentence: z.string().describe("The original sentence"),
+              suggestedSentence: z.string().describe("The suggested sentence"),
               description: z
                 .string()
-                .describe('The description of the suggestion'),
+                .describe("The description of the suggestion"),
             }),
           });
 
@@ -304,14 +305,14 @@ export async function POST(request: Request) {
             };
 
             streamingData.append({
-              type: 'suggestion',
+              type: "suggestion",
               content: suggestion,
             });
 
             suggestions.push(suggestion);
           }
 
-          if (session.user && session.user.id) {
+          if (session.user?.id) {
             const userId = session.user.id;
 
             await convex.mutation(api.queries.saveSuggestions, {
@@ -327,13 +328,13 @@ export async function POST(request: Request) {
           return {
             id: documentId,
             title: document.title,
-            message: 'Suggestions have been added to the document',
+            message: "Suggestions have been added to the document",
           };
         },
       },
     },
     onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
+      if (session.user?.id) {
         try {
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(responseMessages);
@@ -343,7 +344,7 @@ export async function POST(request: Request) {
               (message) => {
                 const messageId = generateUUID();
 
-                if (message.role === 'assistant') {
+                if (message.role === "assistant") {
                   streamingData.appendMessageAnnotation({
                     messageIdFromServer: messageId,
                   });
@@ -360,7 +361,7 @@ export async function POST(request: Request) {
             ),
           });
         } catch (error) {
-          console.error('Failed to save chat');
+          console.error("Failed to save chat");
         }
       }
 
@@ -368,7 +369,7 @@ export async function POST(request: Request) {
     },
     experimental_telemetry: {
       isEnabled: true,
-      functionId: 'stream-text',
+      functionId: "stream-text",
     },
   });
 
@@ -379,30 +380,30 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
 
   if (!id) {
-    return new Response('Not Found', { status: 404 });
+    return new Response("Not Found", { status: 404 });
   }
 
   const session = await auth();
 
   if (!session || !session.user) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   try {
     const chat = await convex.query(api.queries.getChatById, { id });
 
     if (chat.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     await convex.mutation(api.queries.deleteChatById, { id });
 
-    return new Response('Chat deleted', { status: 200 });
+    return new Response("Chat deleted", { status: 200 });
   } catch (error) {
-    return new Response('An error occurred while processing your request', {
+    return new Response("An error occurred while processing your request", {
       status: 500,
     });
   }

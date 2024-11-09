@@ -6,7 +6,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import React, { memo, useEffect, useRef } from 'react';
 
-import { Suggestion } from '@/db/schema';
+import type { Suggestion } from '@/db/schema';
 import {
   documentSchema,
   handleTransaction,
@@ -122,7 +122,7 @@ function PureEditor({
   }, [content, status]);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.state.doc && content) {
+    if (editorRef.current?.state.doc && content) {
       const projectedSuggestions = projectWithPositions(
         editorRef.current.state.doc,
         suggestions
@@ -142,25 +142,25 @@ function PureEditor({
   }, [suggestions, content]);
 
   return (
-    <div className="relative prose dark:prose-invert" ref={containerRef} />
+    <div className="prose dark:prose-invert relative" ref={containerRef} />
   );
 }
 
 function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   if (prevProps.suggestions !== nextProps.suggestions) {
     return false;
-  } else if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
+  }if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
     return false;
-  } else if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
+  }if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
     return false;
-  } else if (
+  }if (
     prevProps.status === 'streaming' &&
     nextProps.status === 'streaming'
   ) {
     return false;
-  } else if (prevProps.content !== nextProps.content) {
+  }if (prevProps.content !== nextProps.content) {
     return false;
-  } else if (prevProps.saveContent !== nextProps.saveContent) {
+  }if (prevProps.saveContent !== nextProps.saveContent) {
     return false;
   }
 

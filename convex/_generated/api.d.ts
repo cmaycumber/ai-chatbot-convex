@@ -13,8 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as client from "../client.js";
-import type * as https from "../https.js";
+import type * as auth from "../auth.js";
+import type * as http from "../http.js";
 import type * as queries from "../queries.js";
 
 /**
@@ -26,8 +26,8 @@ import type * as queries from "../queries.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  client: typeof client;
-  https: typeof https;
+  auth: typeof auth;
+  http: typeof http;
   queries: typeof queries;
 }>;
 export declare const api: FilterApi<

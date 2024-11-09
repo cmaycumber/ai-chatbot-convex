@@ -1,14 +1,14 @@
 'use client';
 
 import { defaultMarkdownSerializer } from 'prosemirror-markdown';
-import { DOMParser, Node } from 'prosemirror-model';
-import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
+import { DOMParser, type Node } from 'prosemirror-model';
+import { Decoration, DecorationSet, type EditorView } from 'prosemirror-view';
 import { renderToString } from 'react-dom/server';
 
 import { Markdown } from '@/components/custom/markdown';
 
 import { documentSchema } from './config';
-import { createSuggestionWidget, UISuggestion } from './suggestions';
+import { createSuggestionWidget, type UISuggestion } from './suggestions';
 
 export const buildDocumentFromContent = (content: string) => {
   const parser = DOMParser.fromSchema(documentSchema);

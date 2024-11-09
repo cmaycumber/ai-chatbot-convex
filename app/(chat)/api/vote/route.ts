@@ -1,5 +1,6 @@
 import { auth } from '@/app/(auth)/auth';
-import { getVotesByChatId, voteMessage } from '@/db/queries';
+import { api } from '@/convex/_generated/api';
+import { convex } from '@/lib/convex';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,7 +16,9 @@ export async function GET(request: Request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const votes = await getVotesByChatId({ id: chatId });
+  const votes = await convex.query(api.queries.getVotesByChatId, {
+    id: chatId,
+  });
 
   return Response.json(votes, { status: 200 });
 }
@@ -38,10 +41,10 @@ export async function PATCH(request: Request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  await voteMessage({
+  await convex.mutation(api.queries.voteMessage, {
     chatId,
     messageId,
-    type: type,
+    type,
   });
 
   return new Response('Message voted', { status: 200 });

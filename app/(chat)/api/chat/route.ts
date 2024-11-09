@@ -11,16 +11,11 @@ import { customModel } from '@/ai';
 import { models } from '@/ai/models';
 import { blocksPrompt, regularPrompt, systemPrompt } from '@/ai/prompts';
 import { auth } from '@/app/(auth)/auth';
-import {
-  deleteChatById,
-  getChatById,
-  getDocumentById,
-  saveChat,
-  saveDocument,
-  saveMessages,
-  saveSuggestions,
-} from '@/db/queries';
-import { Suggestion } from '@/db/schema';
+import { api } from '@/convex/_generated/api';
+import { Doc } from '@/convex/_generated/dataModel';
+import { convex } from '@/lib/convex';
+// import { Suggestion } from '@/db/schema';
+
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -74,14 +69,18 @@ export async function POST(request: Request) {
     return new Response('No user message found', { status: 400 });
   }
 
-  const chat = await getChatById({ id });
+  const chat = await convex.query(api.queries.getChatById, { id });
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: session.user.id, title });
+    await convex.mutation(api.queries.saveChat, {
+      id,
+      userId: session.user.id,
+      title,
+    });
   }
 
-  await saveMessages({
+  await convex.mutation(api.queries.saveMessages, {
     messages: [
       { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
     ],
@@ -159,7 +158,7 @@ export async function POST(request: Request) {
           streamingData.append({ type: 'finish', content: '' });
 
           if (session.user && session.user.id) {
-            await saveDocument({
+            await convex.mutation(api.queries.saveDocument, {
               id,
               title,
               content: draftText,
@@ -183,7 +182,9 @@ export async function POST(request: Request) {
             .describe('The description of changes that need to be made'),
         }),
         execute: async ({ id, description }) => {
-          const document = await getDocumentById({ id });
+          const document = await convex.query(api.queries.getDocumentById, {
+            id,
+          });
 
           if (!document) {
             return {
@@ -237,7 +238,7 @@ export async function POST(request: Request) {
           streamingData.append({ type: 'finish', content: '' });
 
           if (session.user && session.user.id) {
-            await saveDocument({
+            await convex.mutation(api.queries.saveDocument, {
               id,
               title: document.title,
               content: draftText,
@@ -260,7 +261,9 @@ export async function POST(request: Request) {
             .describe('The ID of the document to request edits'),
         }),
         execute: async ({ documentId }) => {
-          const document = await getDocumentById({ id: documentId });
+          const document = await convex.query(api.queries.getDocumentById, {
+            id: documentId,
+          });
 
           if (!document || !document.content) {
             return {
@@ -269,7 +272,10 @@ export async function POST(request: Request) {
           }
 
           let suggestions: Array<
-            Omit<Suggestion, 'userId' | 'createdAt' | 'documentCreatedAt'>
+            Omit<
+              Doc<'suggestions'>,
+              'userId' | 'createdAt' | 'documentCreatedAt'
+            >
           > = [];
 
           const { elementStream } = await streamObject({
@@ -308,7 +314,7 @@ export async function POST(request: Request) {
           if (session.user && session.user.id) {
             const userId = session.user.id;
 
-            await saveSuggestions({
+            await convex.mutation(api.queries.saveSuggestions, {
               suggestions: suggestions.map((suggestion) => ({
                 ...suggestion,
                 userId,
@@ -332,7 +338,7 @@ export async function POST(request: Request) {
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(responseMessages);
 
-          await saveMessages({
+          await convex.mutation(api.queries.saveMessages, {
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {
                 const messageId = generateUUID();
@@ -386,13 +392,13 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const chat = await getChatById({ id });
+    const chat = await convex.query(api.queries.getChatById, { id });
 
     if (chat.userId !== session.user.id) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    await deleteChatById({ id });
+    await convex.mutation(api.queries.deleteChatById, { id });
 
     return new Response('Chat deleted', { status: 200 });
   } catch (error) {

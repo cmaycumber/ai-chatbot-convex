@@ -1,10 +1,11 @@
-import { compare } from "bcrypt-ts";
-import NextAuth, { User, Session } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import { compare } from 'bcrypt-ts';
+import NextAuth, { User, Session } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
 
-import { getUser } from "@/db/queries";
+import { api } from '@/convex/_generated/api';
+import { convex } from '@/lib/convex';
 
-import { authConfig } from "./auth.config";
+import { authConfig } from './auth.config';
 
 interface ExtendedSession extends Session {
   user: User;
@@ -21,7 +22,7 @@ export const {
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
-        let users = await getUser(email);
+        let users = await convex.query(api.queries.getUser, { email });
         if (users.length === 0) return null;
         let passwordsMatch = await compare(password, users[0].password!);
         if (passwordsMatch) return users[0] as any;

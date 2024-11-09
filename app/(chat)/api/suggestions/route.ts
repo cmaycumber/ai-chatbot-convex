@@ -1,5 +1,6 @@
 import { auth } from '@/app/(auth)/auth';
-import { getSuggestionsByDocumentId } from '@/db/queries';
+import { api } from '@/convex/_generated/api';
+import { convex } from '@/lib/convex';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,9 +16,12 @@ export async function GET(request: Request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const suggestions = await getSuggestionsByDocumentId({
-    documentId,
-  });
+  const suggestions = await convex.query(
+    api.queries.getSuggestionsByDocumentId,
+    {
+      documentId,
+    }
+  );
 
   const [suggestion] = suggestions;
 

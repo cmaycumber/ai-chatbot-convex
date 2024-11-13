@@ -57,7 +57,7 @@ export function MultimodalInput({
 	handleSubmit,
 	className,
 }: {
-	chatId: string;
+	chatId?: string;
 	input: string;
 	setInput: (value: string) => void;
 	isLoading: boolean;
@@ -216,7 +216,8 @@ export function MultimodalInput({
 								<Button
 									variant="ghost"
 									onClick={async () => {
-										window.history.replaceState({}, "", `/chat/${chatId}`);
+										if (chatId)
+											window.history.replaceState({}, "", `/chat/${chatId}`);
 
 										append({
 											role: "user",

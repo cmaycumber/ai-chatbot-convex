@@ -1,5 +1,21 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+
+export const getCurrentUser = query({
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+
+		console.log("User ID: ", userId, await ctx.auth.getUserIdentity());
+
+		if (!userId) {
+			return null;
+		}
+
+		return await ctx.db.get(userId);
+	},
+});
 
 export const getUser = query({
 	args: { email: v.string() },

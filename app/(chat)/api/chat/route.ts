@@ -57,8 +57,6 @@ export async function POST(request: Request) {
 
 	const token = await convexAuthNextjsToken();
 
-	console.log("Token: ", token);
-
 	// if (!session || !session.user || !userId) {
 	// 	return new Response("Unauthorized", { status: 401 });
 	// }

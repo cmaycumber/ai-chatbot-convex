@@ -17,16 +17,18 @@ import { Block, type UIBlock } from "./block";
 import { BlockStreamHandler } from "./block-stream-handler";
 import { MultimodalInput } from "./multimodal-input";
 import { Overview } from "./overview";
-import { useMutation } from "convex/react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export function Chat({
+	id: initialId,
 	initialMessages,
 	selectedModelId,
 }: {
 	initialMessages: Array<Message>;
 	selectedModelId: string;
+	id?: Id<"chats">;
 }) {
-	const [id, setId] = useState<string>("");
+	const [id, setId] = useState<Id<"chats"> | undefined>(initialId ?? undefined);
 	const { mutate } = useSWRConfig();
 
 	const {
@@ -50,7 +52,7 @@ export function Chat({
 			const chatId = response.headers.get("chat-id");
 
 			if (chatId) {
-				setId(chatId);
+				setId(chatId as Id<"chats">);
 				window.history.replaceState({}, "", `/chat/${chatId}`);
 			}
 		},

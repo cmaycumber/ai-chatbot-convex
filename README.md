@@ -63,3 +63,5 @@ Your app template should now be running on [localhost:3000](http://localhost:300
 Special Convex Branch
 
 github:cmaycumber/convex-auth#next15-support
+
+// TODO: Probably move to Clerk. Convex auth seems to have a lot of weird nuances especially on SSR authentication... 

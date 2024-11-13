@@ -94,13 +94,6 @@ export async function POST(request: Request) {
 		});
 	}
 
-	const streamingData = new StreamData();
-
-	streamingData.append({
-		type: "chat-id",
-		content: chatId,
-	});
-
 	await convex.mutation(api.queries.saveMessages, {
 		messages: [
 			{
@@ -109,6 +102,8 @@ export async function POST(request: Request) {
 			},
 		],
 	});
+
+	const streamingData = new StreamData();
 
 	const result = await streamText({
 		model: customModel(model.apiIdentifier),
@@ -385,6 +380,9 @@ export async function POST(request: Request) {
 
 	return result.toDataStreamResponse({
 		data: streamingData,
+		headers: {
+			"chat-id": chatId,
+		},
 	});
 }
 

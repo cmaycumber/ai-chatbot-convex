@@ -3,7 +3,7 @@
 import type { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
 import { AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
 
@@ -45,9 +45,16 @@ export function Chat({
 		onFinish: () => {
 			mutate("/api/history");
 		},
-	});
+		// Set chat id from response headers
+		onResponse: (response) => {
+			const chatId = response.headers.get("chat-id");
 
-	console.log("Streaming data: ", streamingData);
+			if (chatId) {
+				setId(chatId);
+				window.history.replaceState({}, "", `/chat/${chatId}`);
+			}
+		},
+	});
 
 	const { width: windowWidth = 1920, height: windowHeight = 1080 } =
 		useWindowSize();
@@ -65,8 +72,6 @@ export function Chat({
 			height: 50,
 		},
 	});
-
-	console.log("Streaming data: ", streamingData);
 
 	const { data: votes } = useSWR<Array<Vote>>(
 		`/api/vote?chatId=${id}`,

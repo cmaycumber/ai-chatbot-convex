@@ -78,7 +78,6 @@ export function MultimodalInput({
 	) => void;
 	className?: string;
 }) {
-	const saveChat = useMutation(api.queries.saveChat);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const { width } = useWindowSize();
 
@@ -125,8 +124,7 @@ export function MultimodalInput({
 	const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
 	const submitForm = useCallback(async () => {
-		const chatId = await saveChat({});
-		window.history.replaceState({}, "", `/chat/${chatId}`);
+		if (chatId) window.history.replaceState({}, "", `/chat/${chatId}`);
 
 		handleSubmit(undefined, {
 			experimental_attachments: attachments,

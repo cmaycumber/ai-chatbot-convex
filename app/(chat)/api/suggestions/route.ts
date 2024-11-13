@@ -1,5 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { convex } from "@/lib/convex";
 
 export async function GET(request: Request) {
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
 	const suggestions = await convex.query(
 		api.queries.getSuggestionsByDocumentId,
 		{
-			documentId,
+			documentId: documentId as Id<"documents">,
 		},
 	);
 

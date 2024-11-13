@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as api_vote from "../api/vote.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as queries from "../queries.js";
@@ -26,6 +27,7 @@ import type * as queries from "../queries.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "api/vote": typeof api_vote;
   auth: typeof auth;
   http: typeof http;
   queries: typeof queries;

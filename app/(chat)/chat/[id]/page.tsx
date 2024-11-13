@@ -38,7 +38,7 @@ export default async function Page(props: { params: Promise<any> }) {
 
 	return (
 		<PreviewChat
-			id={chat.id}
+			id={chat._id}
 			initialMessages={convertToUIMessages(messages)}
 			selectedModelId={selectedModelId}
 		/>

@@ -1,5 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { convex } from "@/lib/convex";
 
 export async function GET(request: Request) {
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 	}
 
 	const votes = await convex.query(api.queries.getVotesByChatId, {
-		id: chatId,
+		id: chatId as Id<"chats">,
 	});
 
 	return Response.json(votes, { status: 200 });
